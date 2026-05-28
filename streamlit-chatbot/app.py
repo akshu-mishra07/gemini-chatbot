@@ -1,17 +1,17 @@
 """
 app.py - Advanced AI Assistant entry point.
 
-Integrates all modules into one unified Streamlit chatbot:
+Modes:
   - General Chat        : Standard Gemini conversation with full history
   - Medical Assistant   : Safe health information with mandatory disclaimers
-  - Research Assistant  : Academic/document analysis mode
+  - Research Assistant  : Academic/document analysis & summarisation
 
-Cross-cutting features (available in all modes):
-  - PDF upload  → Gemini-powered semantic search (no local ML model)
+Cross-cutting features (all modes):
+  - PDF upload  → TF-IDF + FAISS semantic search (offline, no API dependency)
   - Image upload → Gemini Vision analysis
   - Real-time date/time context (always accurate)
   - Sentiment-aware response tone (TextBlob)
-  - Automatic language detection & translation (Hindi, Marathi, 20+ languages)
+  - Auto language detection & translation (Hindi, Marathi, 20+ languages)
 """
 
 import streamlit as st
@@ -20,7 +20,7 @@ import streamlit as st
 from chatbot import send_message, build_client
 
 # Feature modules
-from datetime_handler import build_datetime_context, is_datetime_query
+from datetime_handler import build_datetime_context
 from sentiment_handler import analyze_sentiment, get_tone_instruction, get_sentiment_emoji
 from language_handler import (
     detect_language,
@@ -29,7 +29,7 @@ from language_handler import (
     get_language_name,
 )
 from medical_bot import get_system_prompt, add_medical_disclaimer
-from image_handler import process_image, analyze_image, get_mime_type
+from image_handler import process_image, analyze_image
 from pdf_handler import process_pdf, search_context
 
 # ============================================================================
@@ -42,23 +42,95 @@ st.set_page_config(
 )
 
 # ============================================================================
+# Dark gradient theme + badge styles
+# ============================================================================
+st.markdown(
+    """
+    <style>
+    /* Dark gradient background */
+    .stApp {
+        background: linear-gradient(135deg, #0f0f1a 0%, #1a1a2e 40%, #16213e 100%);
+        color: #e0e0e0;
+    }
+    /* Sidebar dark */
+    [data-testid="stSidebar"] {
+        background: linear-gradient(180deg, #12122a 0%, #1e1e3a 100%);
+    }
+    /* Chat message bubbles */
+    [data-testid="stChatMessage"] {
+        background: rgba(255,255,255,0.04);
+        border-radius: 12px;
+        border: 1px solid rgba(255,255,255,0.07);
+        margin-bottom: 8px;
+    }
+    /* Input box */
+    [data-testid="stChatInput"] textarea {
+        background: rgba(255,255,255,0.06) !important;
+        border: 1px solid rgba(100,120,200,0.4) !important;
+        color: #e0e0e0 !important;
+        border-radius: 12px !important;
+    }
+    /* Buttons */
+    .stButton > button {
+        background: linear-gradient(90deg, #4a4af0 0%, #7b2ff7 100%);
+        color: white;
+        border: none;
+        border-radius: 8px;
+    }
+    .stButton > button:hover {
+        background: linear-gradient(90deg, #6a6af8 0%, #9b4ffa 100%);
+    }
+    /* PDF context active badge */
+    .pdf-badge {
+        display: inline-block;
+        background: linear-gradient(90deg, #00c853, #00e676);
+        color: #000;
+        font-weight: 700;
+        font-size: 0.72rem;
+        padding: 3px 10px;
+        border-radius: 20px;
+        letter-spacing: 0.04em;
+        margin-left: 8px;
+        vertical-align: middle;
+    }
+    /* Mode badge */
+    .mode-badge {
+        display: inline-block;
+        background: linear-gradient(90deg, #4a4af0, #7b2ff7);
+        color: white;
+        font-size: 0.72rem;
+        padding: 3px 10px;
+        border-radius: 20px;
+        margin-left: 8px;
+        vertical-align: middle;
+    }
+    /* Section headers */
+    h1, h2, h3 { color: #c8c8ff; }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
+
+# ============================================================================
 # Session state defaults
 # ============================================================================
 _DEFAULTS: dict = {
     # Chat history
-    "messages": [],           # Display: [{"role": "user"|"assistant", "content": "..."}]
-    "gemini_history": [],     # SDK format: [{"role": "user"|"model", "parts": [...]}]
+    "messages": [],           # Display history
+    "gemini_history": [],     # Gemini SDK format
 
     # Assistant mode
     "mode": "general",        # "general" | "medical" | "research"
 
-    # PDF state (embeddings stored as numpy arrays — no FAISS needed)
-    "pdf_embeddings": None,   # numpy array of shape (n_chunks, 768)
-    "pdf_chunks": None,       # list[str] parallel to embeddings
+    # PDF state — TF-IDF + FAISS (no Gemini embedding API)
+    "pdf_index": None,        # faiss.Index
+    "pdf_chunks": None,       # list[str] parallel to index
+    "pdf_vectorizer": None,   # fitted TfidfVectorizer
+    "pdf_svd": None,          # fitted TruncatedSVD
     "pdf_name": None,         # uploaded filename
     "pdf_chunk_count": 0,     # number of indexed chunks
 
-    # Image state (persists until user clears it)
+    # Image state
     "image_bytes": None,
     "image_mime": None,
     "image_name": None,
@@ -75,11 +147,11 @@ for _k, _v in _DEFAULTS.items():
 # Sidebar
 # ============================================================================
 with st.sidebar:
-    st.title("🤖 AI Assistant")
+    st.markdown("## 🤖 AI Assistant")
     st.markdown("---")
 
     # ── Mode selector ────────────────────────────────────────────────────────
-    st.subheader("🧠 Assistant Mode")
+    st.markdown("### 🧠 Mode")
     _MODE_MAP = {
         "💬 General Chat": "general",
         "🏥 Medical Assistant": "medical",
@@ -102,44 +174,45 @@ with st.sidebar:
     st.markdown("---")
 
     # ── PDF / Document upload ────────────────────────────────────────────────
-    st.subheader("📄 Document (PDF)")
+    st.markdown("### 📄 Document (PDF)")
     uploaded_pdf = st.file_uploader(
-        "Upload a PDF to enable semantic Q&A",
+        "Upload PDF",
         type=["pdf"],
         label_visibility="collapsed",
     )
 
     if uploaded_pdf is not None and uploaded_pdf.name != st.session_state.pdf_name:
-        with st.spinner(f"Indexing **{uploaded_pdf.name}** via Gemini…"):
+        with st.spinner(f"Indexing **{uploaded_pdf.name}** (TF-IDF + FAISS)…"):
             try:
-                client = build_client()
-                embeddings, chunks, _ = process_pdf(uploaded_pdf.read(), client)
-                st.session_state.pdf_embeddings = embeddings
+                index, chunks, vectorizer, svd, _ = process_pdf(uploaded_pdf.read())
+                st.session_state.pdf_index = index
                 st.session_state.pdf_chunks = chunks
+                st.session_state.pdf_vectorizer = vectorizer
+                st.session_state.pdf_svd = svd
                 st.session_state.pdf_name = uploaded_pdf.name
                 st.session_state.pdf_chunk_count = len(chunks)
-                st.success(f"✅ Indexed — {len(chunks)} chunks ready")
+                st.success(f"✅ Indexed — {len(chunks)} chunks ready for Q&A")
             except Exception as e:
                 st.error(f"PDF processing failed: {e}")
 
     if st.session_state.pdf_name:
         st.info(
-            f"📎 **{st.session_state.pdf_name}**\n\n"
-            f"{st.session_state.pdf_chunk_count} chunks indexed"
+            f"📎 **{st.session_state.pdf_name}**  \n"
+            f"{st.session_state.pdf_chunk_count} chunks · FAISS indexed"
         )
         if st.button("🗑️ Remove PDF", use_container_width=True):
-            st.session_state.pdf_embeddings = None
-            st.session_state.pdf_chunks = None
-            st.session_state.pdf_name = None
+            for _key in ("pdf_index", "pdf_chunks", "pdf_vectorizer",
+                         "pdf_svd", "pdf_name"):
+                st.session_state[_key] = None
             st.session_state.pdf_chunk_count = 0
             st.rerun()
 
     st.markdown("---")
 
     # ── Image upload ─────────────────────────────────────────────────────────
-    st.subheader("🖼️ Image Analysis")
+    st.markdown("### 🖼️ Image Analysis")
     uploaded_image = st.file_uploader(
-        "Upload an image for Gemini Vision",
+        "Upload image",
         type=["jpg", "jpeg", "png", "webp"],
         label_visibility="collapsed",
     )
@@ -147,11 +220,11 @@ with st.sidebar:
     if uploaded_image is not None and uploaded_image.name != st.session_state.image_name:
         with st.spinner("Processing image…"):
             try:
-                raw_bytes = uploaded_image.read()
-                proc_bytes, mime = process_image(raw_bytes)
+                proc_bytes, mime = process_image(uploaded_image.read())
                 st.session_state.image_bytes = proc_bytes
                 st.session_state.image_mime = mime
                 st.session_state.image_name = uploaded_image.name
+                st.success("✅ Image ready — ask a question about it")
             except Exception as e:
                 st.error(f"Image processing failed: {e}")
 
@@ -170,7 +243,7 @@ with st.sidebar:
     st.markdown("---")
 
     # ── Language settings ────────────────────────────────────────────────────
-    st.subheader("🌍 Language")
+    st.markdown("### 🌍 Language")
     st.session_state.auto_translate = st.toggle(
         "Auto-detect & translate",
         value=st.session_state.auto_translate,
@@ -184,7 +257,7 @@ with st.sidebar:
     st.markdown("---")
 
     # ── Chat controls ────────────────────────────────────────────────────────
-    st.subheader("💬 Chat")
+    st.markdown("### 💬 Chat")
     if st.button("🗑️ Clear conversation", use_container_width=True):
         st.session_state.messages = []
         st.session_state.gemini_history = []
@@ -192,19 +265,29 @@ with st.sidebar:
         st.rerun()
 
 # ============================================================================
-# Main chat area header
+# Main header with active context badges
 # ============================================================================
 _MODE_EMOJI = {"general": "💬", "medical": "🏥", "research": "📚"}
-st.title(f"{_MODE_EMOJI[st.session_state.mode]} Advanced AI Assistant")
 
-# Active context status bar
+_badges = ""
+if st.session_state.pdf_name:
+    _badges += '<span class="pdf-badge">📎 PDF Context Active</span>'
+if st.session_state.mode != "general":
+    _badges += f'<span class="mode-badge">{selected_label}</span>'
+
+st.markdown(
+    f"<h1>{_MODE_EMOJI[st.session_state.mode]} Advanced AI Assistant{_badges}</h1>",
+    unsafe_allow_html=True,
+)
+
+# Sub-status line
 _status_parts = []
 if st.session_state.pdf_name:
-    _status_parts.append(f"📎 PDF: {st.session_state.pdf_name}")
+    _status_parts.append(f"📎 {st.session_state.pdf_name} ({st.session_state.pdf_chunk_count} chunks)")
 if st.session_state.image_name:
-    _status_parts.append(f"🖼️ Image: {st.session_state.image_name}")
-if st.session_state.mode != "general":
-    _status_parts.append(f"Mode: {selected_label}")
+    _status_parts.append(f"🖼️ {st.session_state.image_name}")
+if st.session_state.auto_translate:
+    _status_parts.append(f"🌍 {get_language_name(st.session_state.detected_lang)}")
 
 if _status_parts:
     st.caption(" · ".join(_status_parts))
@@ -217,13 +300,13 @@ for _msg in st.session_state.messages:
         st.markdown(_msg["content"])
 
 # ============================================================================
-# Chat input & full pipeline
+# Chat input & full message pipeline
 # ============================================================================
 user_input = st.chat_input("Ask me anything…")
 
 if user_input:
 
-    # ── Step 1: Language detection & translation to English ──────────────────
+    # ── Step 1: Language detection & translation ─────────────────────────────
     original_lang = "en"
     english_input = user_input
 
@@ -237,16 +320,16 @@ if user_input:
             original_lang = "en"
             english_input = user_input
 
-    # ── Step 2: Show user message immediately ────────────────────────────────
+    # ── Step 2: Display user message ─────────────────────────────────────────
     with st.chat_message("user"):
         st.markdown(user_input)
         if original_lang != "en":
             st.caption(
                 f"🌍 {get_language_name(original_lang)} detected — "
-                "translating to English for Gemini…"
+                "translating to English for Gemini"
             )
 
-    # Persist original message for display; English version for Gemini
+    # Persist: original for display, English for Gemini history
     st.session_state.messages.append({"role": "user", "content": user_input})
     st.session_state.gemini_history.append(
         {"role": "user", "parts": [{"text": english_input}]}
@@ -261,35 +344,36 @@ if user_input:
     # ── Step 4: Build system prompt ──────────────────────────────────────────
     _system_parts: list[str] = []
 
-    # Mode-specific system instruction
     mode_prompt = get_system_prompt(st.session_state.mode)
     if mode_prompt:
         _system_parts.append(mode_prompt)
 
-    # Sentiment-based tone instruction
     _system_parts.append(get_tone_instruction(sentiment["label"]))
-
-    # Real-time date/time — always inject so Gemini gives accurate answers
-    _system_parts.append(build_datetime_context())
+    _system_parts.append(build_datetime_context())   # always inject accurate datetime
 
     system_prompt = "\n\n".join(_system_parts)
 
-    # ── Step 5: PDF semantic context retrieval ───────────────────────────────
+    # ── Step 5: PDF context retrieval via TF-IDF + FAISS ─────────────────────
     pdf_context: str | None = None
-    if st.session_state.pdf_embeddings is not None and st.session_state.pdf_chunks:
+    if (
+        st.session_state.pdf_index is not None
+        and st.session_state.pdf_chunks
+        and st.session_state.pdf_vectorizer is not None
+        and st.session_state.pdf_svd is not None
+    ):
         try:
-            client = build_client()
             pdf_context = search_context(
                 query=english_input,
-                client=client,
-                embeddings=st.session_state.pdf_embeddings,
+                index=st.session_state.pdf_index,
                 chunks=st.session_state.pdf_chunks,
+                vectorizer=st.session_state.pdf_vectorizer,
+                svd=st.session_state.pdf_svd,
                 k=4,
             )
         except Exception:
             pdf_context = None
 
-    # ── Step 6: Image data preparation ──────────────────────────────────────
+    # ── Step 6: Image data ───────────────────────────────────────────────────
     image_data: dict | None = None
     if st.session_state.image_bytes:
         image_data = {
@@ -302,7 +386,6 @@ if user_input:
         with st.spinner("Thinking…"):
             try:
                 if image_data:
-                    # Multimodal: use dedicated image analysis path
                     client = build_client()
                     english_reply = analyze_image(
                         client=client,
@@ -311,8 +394,7 @@ if user_input:
                         user_prompt=english_input,
                     )
                 else:
-                    # Text-only (may include PDF context)
-                    # Pass history *excluding* the current turn (already appended above)
+                    # Text chat — may include PDF context injection
                     english_reply = send_message(
                         history=st.session_state.gemini_history[:-1],
                         user_message=english_input,
@@ -321,30 +403,28 @@ if user_input:
                         pdf_context=pdf_context,
                     )
 
-                # ── Step 8: Post-process ─────────────────────────────────────
+                # ── Step 8: Post-process ──────────────────────────────────────
                 reply = english_reply
 
-                # Mandatory medical disclaimer in medical mode
                 if st.session_state.mode == "medical":
                     reply = add_medical_disclaimer(reply)
 
-                # Translate response back to user's original language
                 if original_lang != "en" and st.session_state.auto_translate:
                     try:
                         reply = translate_from_english(reply, original_lang)
                     except Exception:
-                        pass  # Fall back to English response
+                        pass  # Graceful fallback — show English response
 
-                # ── Step 9: Display ──────────────────────────────────────────
+                # ── Step 9: Display ───────────────────────────────────────────
                 st.markdown(reply)
 
                 # Collapsible metadata panel
                 with st.expander("ℹ️ Message details", expanded=False):
                     col1, col2 = st.columns(2)
                     with col1:
-                        sentiment_emoji = get_sentiment_emoji(sentiment["label"])
+                        emoji = get_sentiment_emoji(sentiment["label"])
                         st.write(
-                            f"**Sentiment:** {sentiment_emoji} "
+                            f"**Sentiment:** {emoji} "
                             f"{sentiment['label'].capitalize()} "
                             f"(polarity: {sentiment['polarity']})"
                         )
@@ -353,19 +433,14 @@ if user_input:
                             f"({original_lang})"
                         )
                     with col2:
-                        st.write(
-                            f"**PDF context:** {'✅ Yes' if pdf_context else '❌ No'}"
-                        )
-                        st.write(
-                            f"**Image:** {'✅ Included' if image_data else '❌ None'}"
-                        )
+                        st.write(f"**PDF context used:** {'✅' if pdf_context else '❌'}")
+                        st.write(f"**Image included:** {'✅' if image_data else '❌'}")
                         st.write(f"**Mode:** {selected_label}")
 
-                # ── Step 10: Persist to session state ────────────────────────
+                # ── Step 10: Persist ──────────────────────────────────────────
                 st.session_state.messages.append(
                     {"role": "assistant", "content": reply}
                 )
-                # Store English version in Gemini history for coherent follow-ups
                 st.session_state.gemini_history.append(
                     {"role": "model", "parts": [{"text": english_reply}]}
                 )
@@ -373,4 +448,4 @@ if user_input:
             except ValueError as e:
                 st.error(f"⚠️ Configuration error: {e}")
             except Exception as e:
-                st.error(f"❌ An error occurred: {e}")
+                st.error(f"❌ {e}")
