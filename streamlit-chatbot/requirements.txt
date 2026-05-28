@@ -1,2 +1,23 @@
+# Core UI
 streamlit>=1.35.0
-google-generativeai>=0.8.0
+
+# Gemini SDK (latest — handles chat, vision, and embeddings)
+google-genai>=0.8.0
+
+# PDF text extraction
+pypdf>=4.0.0
+
+# Image processing
+Pillow>=10.0.0
+
+# Sentiment analysis (lightweight, uses NLTK)
+textblob>=0.18.0
+
+# Language detection
+langdetect>=1.0.9
+
+# Translation (more reliable than googletrans)
+deep-translator>=1.11.0
+
+# Numerical operations for cosine similarity (embeddings stored as numpy arrays)
+numpy>=1.24.0
