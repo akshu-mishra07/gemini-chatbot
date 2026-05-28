@@ -1,9 +1,14 @@
 """
 chatbot.py - Gemini API integration module.
 
-Handles all communication with Google's Gemini API using the latest
-google.genai SDK. Automatically falls back through a priority list of
-models when one returns a 503 (overloaded) or quota/rate-limit error.
+Supports:
+- Plain text chat with full conversation history
+- Multimodal chat (text + image)
+- PDF context injection (grounding in document content)
+- Custom system prompts (medical / research modes)
+- Automatic model fallback on 503 / 429 errors
+
+Uses the latest google.genai SDK exclusively.
 """
 
 import os
@@ -11,7 +16,7 @@ from google import genai
 from google.genai import types
 from google.genai import errors as genai_errors
 
-# Models tried in order. On 503 or quota failure the next one is used.
+# Models tried in order — first one available and not rate-limited wins.
 _FALLBACK_MODELS = [
     "gemini-2.5-flash-lite",
     "gemini-2.0-flash",
@@ -25,7 +30,7 @@ def get_api_key() -> str:
     Read the Gemini API key from environment variables.
 
     Returns:
-        str: The API key string.
+        str: API key string.
 
     Raises:
         ValueError: If GEMINI_API_KEY is not set.
@@ -41,48 +46,52 @@ def get_api_key() -> str:
 
 def build_client() -> genai.Client:
     """
-    Build and return a configured Gemini client.
+    Build and return an authenticated Gemini client.
 
     Returns:
-        genai.Client: An authenticated Gemini client.
+        genai.Client
     """
     return genai.Client(api_key=get_api_key())
 
 
 def _is_retryable(exc: Exception) -> bool:
     """
-    Return True if the error is a transient failure we should fall back on.
+    Return True for transient errors that warrant trying the next model.
 
-    Retryable conditions:
-    - 503 Service Unavailable (model overloaded)
-    - 429 Resource Exhausted (quota / rate limit exceeded)
+    Retryable: 503 Service Unavailable, 429 Resource Exhausted.
 
     Args:
-        exc: The exception raised by the Gemini SDK.
+        exc: Exception from the Gemini SDK.
 
     Returns:
-        bool: True if we should try the next model, False otherwise.
+        bool
     """
     if isinstance(exc, (genai_errors.ServerError, genai_errors.ClientError)):
-        code = getattr(exc, "status_code", None)
-        return code in (429, 503)
-    # Also catch by message as a safety net
+        return getattr(exc, "status_code", None) in (429, 503)
     msg = str(exc)
     return "503" in msg or "429" in msg or "RESOURCE_EXHAUSTED" in msg
 
 
-def _build_contents(history: list[dict], user_message: str) -> list[types.Content]:
+def _build_contents(
+    history: list[dict],
+    user_message: str,
+    image_data: dict | None = None,
+    pdf_context: str | None = None,
+) -> list[types.Content]:
     """
-    Convert stored history dicts into SDK Content objects and append the
-    latest user message.
+    Construct the Gemini contents list from conversation history and the
+    latest user turn (optionally including an image and/or PDF context).
 
     Args:
-        history: Past messages — [{"role": "user"|"model", "parts": [...]}]
-        user_message: The new message from the user.
+        history: Past turns — [{"role": "user"|"model", "parts": [...]}]
+        user_message: Current user message text.
+        image_data: Optional dict {"bytes": bytes, "mime_type": str}.
+        pdf_context: Optional relevant text retrieved from an indexed PDF.
 
     Returns:
-        list[types.Content]: Ready-to-send contents list.
+        list[types.Content]: Ready-to-send Gemini content list.
     """
+    # Rebuild history as SDK Content objects
     contents = [
         types.Content(
             role=msg["role"],
@@ -90,32 +99,69 @@ def _build_contents(history: list[dict], user_message: str) -> list[types.Conten
         )
         for msg in history
     ]
-    contents.append(
-        types.Content(role="user", parts=[types.Part(text=user_message)])
-    )
+
+    # Augment user message with PDF context if available
+    if pdf_context:
+        final_text = (
+            "[Relevant context from uploaded document]\n"
+            f"{pdf_context}\n\n"
+            "Using the above context where relevant, answer the following:\n"
+            f"{user_message}"
+        )
+    else:
+        final_text = user_message
+
+    # Build user parts — image first if present, then text
+    if image_data:
+        parts = [
+            types.Part(
+                inline_data=types.Blob(
+                    mime_type=image_data["mime_type"],
+                    data=image_data["bytes"],
+                )
+            ),
+            types.Part(text=final_text),
+        ]
+    else:
+        parts = [types.Part(text=final_text)]
+
+    contents.append(types.Content(role="user", parts=parts))
     return contents
 
 
-def send_message(history: list[dict], user_message: str) -> str:
+def send_message(
+    history: list[dict],
+    user_message: str,
+    system_prompt: str | None = None,
+    image_data: dict | None = None,
+    pdf_context: str | None = None,
+) -> str:
     """
-    Send a user message to Gemini with full conversation history.
+    Send a message to Gemini with full conversation history and optional extras.
 
-    Tries each model in _FALLBACK_MODELS in order. If a model returns a
-    503 (overloaded) or 429 (quota exceeded) error, the next model in the
-    list is tried automatically. Raises the last error if all models fail.
+    Automatically falls back to the next model in _FALLBACK_MODELS if a
+    503 (overloaded) or 429 (quota exceeded) error is encountered.
 
     Args:
-        history: Past messages — [{"role": "user"|"model", "parts": [...]}]
-        user_message: The text typed by the user.
+        history: Past conversation turns.
+        user_message: Current user text input.
+        system_prompt: Optional system-level instruction (medical / research mode).
+        image_data: Optional image dict {"bytes": bytes, "mime_type": str}.
+        pdf_context: Optional document context string from FAISS search.
 
     Returns:
-        str: The assistant's response text.
+        str: Gemini's response text.
 
     Raises:
         RuntimeError: If all fallback models are exhausted.
     """
     client = build_client()
-    contents = _build_contents(history, user_message)
+    contents = _build_contents(history, user_message, image_data, pdf_context)
+
+    # Build config — conditionally include system_instruction
+    config_kwargs: dict = {"max_output_tokens": 8192}
+    if system_prompt:
+        config_kwargs["system_instruction"] = system_prompt
 
     last_exc: Exception | None = None
 
@@ -124,15 +170,14 @@ def send_message(history: list[dict], user_message: str) -> str:
             response = client.models.generate_content(
                 model=model,
                 contents=contents,
-                config=types.GenerateContentConfig(max_output_tokens=8192),
+                config=types.GenerateContentConfig(**config_kwargs),
             )
             return response.text
         except Exception as exc:
             if _is_retryable(exc):
-                # Log which model failed and try the next one
                 last_exc = exc
                 continue
-            # Non-retryable error (e.g. bad request, auth) — raise immediately
+            # Non-retryable (bad request, auth, etc.) — fail fast
             raise
 
     raise RuntimeError(
