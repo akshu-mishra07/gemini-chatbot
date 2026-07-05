@@ -1,9 +1,14 @@
 """
 chatbot.py - Gemini API integration module.
 
-Handles all communication with Google's Gemini API using the latest
-google.genai SDK. Automatically falls back through a priority list of
-models when one returns a 503 (overloaded) or quota/rate-limit error.
+Supports:
+- Plain text chat with full conversation history
+- Multimodal chat (text + image)
+- PDF context injection (grounding in document content)
+- Custom system prompts (medical / research modes)
+- Automatic model fallback on 503 / 429 errors
+
+Uses the latest google.genai SDK exclusively.
 """
 
 import os
@@ -37,7 +42,7 @@ def get_api_key() -> str:
     Read the Gemini API key from session state or environment variables.
 
     Returns:
-        str: The API key string.
+        str: API key string.
 
     Raises:
         ValueError: If GEMINI_API_KEY is not set.
@@ -76,10 +81,10 @@ def _get_cached_client(api_key: str) -> genai.Client:
 
 def build_client() -> genai.Client:
     """
-    Build and return a configured Gemini client.
+    Build and return an authenticated Gemini client.
 
     Returns:
-        genai.Client: An authenticated Gemini client.
+        genai.Client
     """
     global _cached_client
     if _cached_client is not None:
@@ -109,17 +114,15 @@ def _is_hard_quota_exhausted(exc: Exception) -> bool:
 
 def _is_retryable(exc: Exception) -> bool:
     """
-    Return True if the error is a transient failure we should fall back on.
+    Return True for transient errors that warrant trying the next model.
 
-    Retryable conditions:
-    - 503 Service Unavailable (model overloaded)
-    - 429 Resource Exhausted (quota / rate limit exceeded)
+    Retryable: 503 Service Unavailable, 429 Resource Exhausted.
 
     Args:
-        exc: The exception raised by the Gemini SDK.
+        exc: Exception from the Gemini SDK.
 
     Returns:
-        bool: True if we should try the next model, False otherwise.
+        bool
     """
     code = getattr(exc, "code", None) or getattr(exc, "status_code", None)
     if code in (429, 503):
@@ -140,7 +143,7 @@ def _build_contents(history: list[dict], user_message: str, images: list = None)
         images: Optional list of PIL.Image.Image objects.
 
     Returns:
-        list[types.Content]: Ready-to-send contents list.
+        list[types.Content]: Ready-to-send Gemini content list.
     """
     import io
     contents = []

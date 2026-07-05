@@ -1,5 +1,5 @@
 """
-app.py - Main Streamlit application entry point.
+app.py - Advanced AI Assistant entry point.
 
 Implements a premium dark purple AI SaaS interface with 4 isolated modes:
   1. General Assistant - General AI chat with Gemini
@@ -2193,7 +2193,7 @@ if user_input:
         }
     )
     st.session_state.gemini_history.append(
-        {"role": "user", "parts": [{"text": user_input}]}
+        {"role": "user", "parts": [{"text": english_input}]}
     )
 
     # ---- ROUTE BASED ON MODE ----
