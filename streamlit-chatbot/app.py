@@ -38,50 +38,62 @@ PREMIUM_CSS = """
 
 /* Root variables */
 :root {
-    --bg-primary: #0f0a1a;
-    --bg-secondary: #160e29;
-    --bg-card: rgba(30, 20, 60, 0.45);
+    --bg-primary: #090514;
+    --bg-secondary: #110924;
+    --bg-card: rgba(26, 17, 50, 0.55);
     --accent-primary: #a78bfa;
     --accent-secondary: #7c3aed;
-    --accent-glow: rgba(124, 58, 237, 0.35);
+    --accent-glow: rgba(124, 58, 237, 0.4);
     --text-primary: #f8fafc;
     --text-secondary: #cbd5e1;
     --text-muted: #64748b;
-    --border-color: rgba(167, 139, 250, 0.18);
+    --border-color: rgba(167, 139, 250, 0.2);
     --success: #10b981;
     --warning: #f59e0b;
     --danger: #ef4444;
     --info: #0ea5e9;
 }
 
-/* Global overrides */
+/* Global overrides & Background Mesh */
 .stApp {
-    background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 50%, #0d0520 100%) !important;
+    background: radial-gradient(circle at 10% 15%, rgba(124, 58, 237, 0.12), transparent 45%), 
+                radial-gradient(circle at 90% 85%, rgba(167, 139, 250, 0.1), transparent 45%), 
+                linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 50%, #06030d 100%) !important;
     font-family: 'Inter', sans-serif !important;
 }
 
-/* Header Redesign */
+.stApp::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: radial-gradient(circle at 50% 50%, rgba(167, 139, 250, 0.03), transparent 60%);
+    pointer-events: none;
+}
+
+/* Header Redesign (Glassmorphism Nav Bar) */
 .omnichat-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background: rgba(25, 15, 45, 0.55);
+    background: rgba(22, 12, 42, 0.65);
     border: 1px solid var(--border-color);
     border-radius: 16px;
     padding: 1.25rem 2rem;
     margin-bottom: 2rem;
-    backdrop-filter: blur(12px);
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(16px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35), inset 0 1px 1px rgba(255, 255, 255, 0.05);
 }
 
 .header-left h1 {
     font-family: 'Outfit', sans-serif !important;
-    font-size: 1.75rem;
+    font-size: 1.8rem;
     font-weight: 800;
     margin: 0;
-    background: linear-gradient(135deg, #c084fc, #a78bfa, #818cf8);
+    letter-spacing: -0.02em;
+    background: linear-gradient(135deg, #c084fc 0%, #a78bfa 50%, #818cf8 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
+    text-shadow: 0 0 30px rgba(167, 139, 250, 0.2);
 }
 
 .header-left p {
@@ -100,18 +112,19 @@ PREMIUM_CSS = """
 .header-metric {
     display: flex;
     flex-direction: column;
-    background: rgba(15, 10, 30, 0.6);
-    border: 1px solid rgba(167, 139, 250, 0.12);
-    padding: 0.3rem 0.75rem;
-    border-radius: 8px;
+    background: rgba(10, 5, 20, 0.7);
+    border: 1px solid rgba(167, 139, 250, 0.15);
+    padding: 0.35rem 0.8rem;
+    border-radius: 10px;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.3);
 }
 
 .metric-label {
     font-size: 0.65rem;
     color: var(--text-muted);
-    font-weight: 700;
+    font-weight: 800;
     text-transform: uppercase;
-    letter-spacing: 0.05em;
+    letter-spacing: 0.08em;
 }
 
 .metric-value {
@@ -135,7 +148,7 @@ PREMIUM_CSS = """
     background-color: var(--success);
     border-radius: 50%;
     display: inline-block;
-    box-shadow: 0 0 10px var(--success);
+    box-shadow: 0 0 12px var(--success);
 }
 
 .header-actions {
@@ -147,14 +160,14 @@ PREMIUM_CSS = """
 .header-btn {
     cursor: pointer;
     font-size: 1.1rem;
-    padding: 0.3rem;
+    padding: 0.35rem;
     border-radius: 50%;
-    transition: all 0.2s ease;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .header-btn:hover {
-    background: rgba(167, 139, 250, 0.15);
-    transform: scale(1.1);
+    background: rgba(167, 139, 250, 0.2);
+    transform: scale(1.15) rotate(5deg);
 }
 
 .header-avatar {
@@ -168,46 +181,47 @@ PREMIUM_CSS = """
     display: flex;
     align-items: center;
     justify-content: center;
-    border: 1px solid rgba(255, 255, 255, 0.25);
-    box-shadow: 0 2px 8px var(--accent-glow);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 2px 10px var(--accent-glow);
 }
 
-/* Sidebar Redesign & Cards */
+/* Sidebar Redesign (Compact Sidebar Panels) */
 section[data-testid="stSidebar"] {
-    background: linear-gradient(180deg, #160e2a 0%, #0d081b 100%) !important;
+    background: linear-gradient(180deg, #100a20 0%, #07040e 100%) !important;
     border-right: 1px solid var(--border-color) !important;
     padding: 1.5rem 0.5rem !important;
 }
 
 section[data-testid="stSidebar"] h2 {
     font-family: 'Outfit', sans-serif !important;
-    font-weight: 700 !important;
+    font-weight: 800 !important;
     color: var(--text-primary) !important;
-    font-size: 1.25rem !important;
+    font-size: 1.3rem !important;
+    letter-spacing: -0.01em !important;
     margin-bottom: 1.5rem !important;
     text-align: center;
 }
 
 section[data-testid="stSidebar"] div[data-testid="stExpander"] {
-    background: rgba(30, 20, 60, 0.3) !important;
-    border: 1px solid rgba(167, 139, 250, 0.15) !important;
+    background: rgba(22, 14, 44, 0.45) !important;
+    border: 1px solid rgba(167, 139, 250, 0.16) !important;
     border-radius: 12px !important;
     margin-bottom: 0.85rem !important;
-    backdrop-filter: blur(8px) !important;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15) !important;
+    backdrop-filter: blur(10px) !important;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2) !important;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
 
 section[data-testid="stSidebar"] div[data-testid="stExpander"]:hover {
-    border-color: rgba(167, 139, 250, 0.35) !important;
+    border-color: rgba(167, 139, 250, 0.4) !important;
     transform: translateY(-2px) !important;
-    box-shadow: 0 8px 25px rgba(124, 58, 237, 0.2) !important;
+    box-shadow: 0 8px 25px rgba(124, 58, 237, 0.25) !important;
 }
 
 /* Sidebar labels and selections */
 section[data-testid="stSidebar"] label {
     font-size: 0.8rem !important;
-    font-weight: 600 !important;
+    font-weight: 700 !important;
     color: var(--text-secondary) !important;
     margin-bottom: 4px !important;
 }
@@ -217,7 +231,7 @@ section[data-testid="stSidebar"] label {
     background: transparent !important;
     border: none !important;
     font-size: 0.9rem !important;
-    font-weight: 600 !important;
+    font-weight: 700 !important;
     color: var(--text-primary) !important;
 }
 
@@ -232,27 +246,35 @@ section[data-testid="stSidebar"] label {
     font-size: 0.85rem !important;
     font-weight: 600 !important;
     margin-bottom: 0.5rem !important;
-    transition: all 0.25s ease !important;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
     cursor: pointer !important;
 }
 
 /* Button style categorization */
-/* 1. Primary buttons */
+/* 1. Primary buttons with shimmer gradient */
 .stButton > button, 
 button[key*="btn_proceed_gen"],
 button[key*="btn_rebuild"] {
-    background: linear-gradient(135deg, var(--accent-secondary), var(--accent-primary)) !important;
+    background: linear-gradient(135deg, var(--accent-secondary), var(--accent-primary), var(--accent-secondary)) !important;
+    background-size: 200% auto !important;
     color: white !important;
     border: none !important;
     box-shadow: 0 4px 14px var(--accent-glow) !important;
+    animation: shimmer 6s linear infinite !important;
+}
+
+@keyframes shimmer {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
 }
 
 .stButton > button:hover, 
 button[key*="btn_proceed_gen"]:hover,
 button[key*="btn_rebuild"]:hover {
     transform: translateY(-2px) !important;
-    box-shadow: 0 6px 20px rgba(124, 58, 237, 0.55) !important;
+    box-shadow: 0 6px 20px rgba(124, 58, 237, 0.6) !important;
 }
 
 /* 2. Secondary buttons (glassmorphism style) */
@@ -267,7 +289,7 @@ button[key*="dl_png_"],
 button[key*="dl_jpg_"],
 button[key*="upscale_"],
 button[key*="ref_"] {
-    background: rgba(30, 20, 60, 0.5) !important;
+    background: rgba(30, 20, 60, 0.45) !important;
     border: 1px solid var(--border-color) !important;
     color: var(--text-primary) !important;
     box-shadow: none !important;
@@ -284,7 +306,7 @@ button[key*="dl_png_"]:hover,
 button[key*="dl_jpg_"]:hover,
 button[key*="upscale_"]:hover,
 button[key*="ref_"]:hover {
-    background: rgba(167, 139, 250, 0.15) !important;
+    background: rgba(167, 139, 250, 0.2) !important;
     border-color: var(--accent-primary) !important;
     transform: translateY(-1px) !important;
 }
@@ -306,7 +328,7 @@ button[key*="btn_clear"]:hover,
 button[key*="delete"]:hover,
 button[key*="btn_delete_session"]:hover,
 button[key*="del_"]:hover {
-    background: rgba(239, 68, 68, 0.3) !important;
+    background: rgba(239, 68, 68, 0.28) !important;
     border-color: var(--danger) !important;
     transform: translateY(-1px) !important;
 }
@@ -324,40 +346,48 @@ button[key*="btn_build_med"] {
 button[key*="index"]:hover,
 button[key*="btn_index"]:hover,
 button[key*="btn_build_med"]:hover {
-    background: rgba(16, 185, 129, 0.3) !important;
+    background: rgba(16, 185, 129, 0.28) !important;
     border-color: var(--success) !important;
     transform: translateY(-1px) !important;
 }
 
-/* Input Fields & Text Areas */
+/* Input Fields & Text Areas with focus glow */
 .stSelectbox > div > div, 
 .stTextInput > div > div, 
 .stTextArea textarea {
-    background: rgba(20, 10, 40, 0.6) !important;
+    background: rgba(18, 10, 36, 0.7) !important;
     border: 1px solid var(--border-color) !important;
-    border-radius: 8px !important;
+    border-radius: 10px !important;
     color: var(--text-primary) !important;
+    transition: all 0.3s ease !important;
 }
 
-/* Chat Input styling */
+.stSelectbox > div > div:focus-within, 
+.stTextInput > div > div:focus-within, 
+.stTextArea textarea:focus {
+    border-color: var(--accent-primary) !important;
+    box-shadow: 0 0 12px rgba(167, 139, 250, 0.25) !important;
+}
+
+/* Chat Input styling (Floating Box Layout) */
 .stChatInput {
     background: transparent !important;
-    padding-bottom: 20px !important;
+    padding-bottom: 25px !important;
 }
 
 .stChatInput > div {
-    background: rgba(25, 15, 45, 0.8) !important;
-    border: 1px solid rgba(167, 139, 250, 0.25) !important;
-    border-radius: 24px !important;
-    box-shadow: 0 10px 30px rgba(124, 58, 237, 0.15) !important;
-    backdrop-filter: blur(12px) !important;
-    padding: 0.25rem 1rem !important;
-    transition: all 0.3s ease !important;
+    background: rgba(20, 11, 40, 0.85) !important;
+    border: 1px solid rgba(167, 139, 250, 0.3) !important;
+    border-radius: 28px !important;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4), 0 0 20px rgba(124, 58, 237, 0.15) !important;
+    backdrop-filter: blur(20px) !important;
+    padding: 0.3rem 1.25rem !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
 
 .stChatInput > div:focus-within {
     border-color: var(--accent-primary) !important;
-    box-shadow: 0 10px 30px rgba(124, 58, 237, 0.3) !important;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4), 0 0 25px rgba(124, 58, 237, 0.3) !important;
 }
 
 .stChatInput textarea {
@@ -365,22 +395,30 @@ button[key*="btn_build_med"]:hover {
     font-size: 0.95rem !important;
 }
 
-/* Chat Message Bubbles */
+/* Chat Message Bubbles (Floating Glassmorphism Card Bubbles) */
 .stChatMessage {
     background: var(--bg-card) !important;
     border: 1px solid var(--border-color) !important;
     border-radius: 16px !important;
-    backdrop-filter: blur(10px) !important;
+    backdrop-filter: blur(12px) !important;
     padding: 1.25rem !important;
-    margin-bottom: 0.85rem !important;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1) !important;
+    margin-bottom: 1rem !important;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2) !important;
+    transition: all 0.3s ease !important;
     animation: fadeInUp 0.4s ease-out;
+}
+
+.stChatMessage:hover {
+    border-color: rgba(167, 139, 250, 0.35) !important;
+    box-shadow: 0 12px 40px rgba(124, 58, 237, 0.18) !important;
+    transform: translateY(-2px);
 }
 
 /* Headings typography */
 h1, h2, h3, h4 {
     font-family: 'Outfit', sans-serif !important;
     color: var(--text-primary) !important;
+    letter-spacing: -0.01em !important;
 }
 
 /* Badge Mode */
@@ -391,9 +429,9 @@ h1, h2, h3, h4 {
     padding: 4px 14px;
     border-radius: 20px;
     font-size: 0.8rem;
-    font-weight: 600;
+    font-weight: 700;
     margin-bottom: 0.75rem;
-    box-shadow: 0 2px 10px var(--accent-glow);
+    box-shadow: 0 2px 12px var(--accent-glow);
 }
 
 /* Keyframe animations */
@@ -404,7 +442,7 @@ h1, h2, h3, h4 {
 }
 
 @keyframes fadeInUp {
-    from { opacity: 0; transform: translateY(8px); }
+    from { opacity: 0; transform: translateY(10px); }
     to { opacity: 1; transform: translateY(0); }
 }
 
