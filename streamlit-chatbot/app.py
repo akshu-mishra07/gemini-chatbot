@@ -1408,7 +1408,6 @@ st.markdown(header_html, unsafe_allow_html=True)
 # ---------------------------------------------------------------------------
 with st.sidebar:
     st.markdown("## 🎛️ Control Panel")
-    render_auth_panel()
 
     # Mode selector
     chat_mode = st.selectbox(
@@ -1778,6 +1777,9 @@ with st.sidebar:
             )
         else:
             st.info("No messages to export.")
+    
+    st.divider()
+    render_auth_panel()
 
 # ---------------------------------------------------------------------------
 # Main Chat Area — Mode-specific header
