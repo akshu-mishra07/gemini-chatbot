@@ -456,80 +456,98 @@ st.markdown(PREMIUM_CSS, unsafe_allow_html=True)
 # ---------------------------------------------------------------------------
 # Imports from project modules
 # ---------------------------------------------------------------------------
-from chatbot import send_message_stream, GeminiQuotaError, get_api_key
-from logger import (
-    app_logger,
-    auth_logger,
-    chat_logger,
-    knowledge_logger,
-    medical_logger,
-    research_logger,
-    images_logger,
-    perf_logger,
-    api_logger,
-    log_err
-)
-from knowledge_manager import (
-    load_metadata,
-    add_document,
-    delete_document,
-    get_watch_folders,
-    rebuild_knowledge_base,
-    set_watch_folders,
-    sync_and_refresh_knowledge_base,
-    get_documents_save_dir,
-)
-from rag_engine import query_relevant_chunks, format_rag_context, build_system_prompt_with_context
-from chat_manager import (
-    create_session,
-    delete_session as delete_chat_session,
-    export_chat_pdf,
-    export_chat_txt,
-    list_sessions,
-    load_session,
-    rename_session,
-    update_session,
-)
-from web_search import (
-    extract_weather_location,
-    fallback_answer as fallback_web_answer,
-    format_results_for_prompt,
-    get_weather,
-    is_realtime_query,
-    search_web,
-)
-from auth.service import (
-    authenticate_user,
-    create_user as create_auth_user,
-    get_user_profile,
-    guest_profile,
-    update_user_profile,
-)
-from database.storage import initialize_database
-from multilingual.service import (
-    SUPPORTED_LANGUAGES,
-    VOICE_READY_CONFIG,
-    build_language_instruction,
-    build_model_user_message,
-    prepare_language_context,
-)
-from multimodal.image_service import list_image_events, save_uploaded_image_event
-from research.service import (
-    format_papers_for_prompt,
-    record_research_query,
-    related_papers,
-    search_papers,
-    summarize_papers,
-    timeline_rows,
-)
-from sentiment.service import (
-    analyze_sentiment,
-    build_sentiment_instruction,
-    list_sentiment_events,
-    record_sentiment,
-    sentiment_badge_html,
-    sentiment_summary,
-)
+try:
+    from chatbot import send_message_stream, GeminiQuotaError, get_api_key
+    from logger import (
+        app_logger,
+        auth_logger,
+        chat_logger,
+        knowledge_logger,
+        medical_logger,
+        research_logger,
+        images_logger,
+        perf_logger,
+        api_logger,
+        log_err
+    )
+    from knowledge_manager import (
+        load_metadata,
+        add_document,
+        delete_document,
+        get_watch_folders,
+        rebuild_knowledge_base,
+        set_watch_folders,
+        sync_and_refresh_knowledge_base,
+        get_documents_save_dir,
+    )
+    from rag_engine import query_relevant_chunks, format_rag_context, build_system_prompt_with_context
+    from chat_manager import (
+        create_session,
+        delete_session as delete_chat_session,
+        export_chat_pdf,
+        export_chat_txt,
+        list_sessions,
+        load_session,
+        rename_session,
+        update_session,
+    )
+    from web_search import (
+        extract_weather_location,
+        fallback_answer as fallback_web_answer,
+        format_results_for_prompt,
+        get_weather,
+        is_realtime_query,
+        search_web,
+    )
+    from auth.service import (
+        authenticate_user,
+        create_user as create_auth_user,
+        get_user_profile,
+        guest_profile,
+        update_user_profile,
+    )
+    from database.storage import initialize_database
+    from multilingual.service import (
+        SUPPORTED_LANGUAGES,
+        VOICE_READY_CONFIG,
+        build_language_instruction,
+        build_model_user_message,
+        prepare_language_context,
+    )
+    from multimodal.image_service import list_image_events, save_uploaded_image_event
+    from research.service import (
+        format_papers_for_prompt,
+        record_research_query,
+        related_papers,
+        search_papers,
+        summarize_papers,
+        timeline_rows,
+    )
+    from sentiment.service import (
+        analyze_sentiment,
+        build_sentiment_instruction,
+        list_sentiment_events,
+        record_sentiment,
+        sentiment_badge_html,
+        sentiment_summary,
+    )
+except ModuleNotFoundError as e:
+    import sys
+    import os
+    st.error(f"❌ ModuleNotFoundError during startup: {e}")
+    st.markdown("### Debugging Information")
+    st.write(f"**__file__:** `{__file__}`")
+    st.write(f"**cwd:** `{os.getcwd()}`")
+    st.write(f"**sys.path:** {sys.path}")
+    try:
+        st.write(f"**os.listdir('.'):** {os.listdir('.')}")
+    except Exception:
+        pass
+    try:
+        st.write(f"**os.listdir('streamlit-chatbot'):** {os.listdir('streamlit-chatbot')}")
+    except Exception:
+        pass
+    st.stop()
 
 # ---------------------------------------------------------------------------
 # Constants & Local Fallback Data
