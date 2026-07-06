@@ -34,115 +34,104 @@ st.set_page_config(
 # ---------------------------------------------------------------------------
 PREMIUM_CSS = """
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap');
 
-/* Root Variables */
+/* Root variables */
 :root {
-    --bg-primary: #050507;
-    --bg-secondary: #0c0c0e;
-    --bg-card: rgba(18, 18, 22, 0.75);
-    --accent-primary: #6366f1; /* Indigo */
-    --accent-secondary: #d946ef; /* Fuchsia */
-    --accent-gradient: linear-gradient(135deg, #6366f1 0%, #a855f7 50%, #d946ef 100%);
-    --accent-glow: rgba(99, 102, 241, 0.25);
+    --bg-primary: #0f0a1a;
+    --bg-secondary: #160e29;
+    --bg-card: rgba(30, 20, 60, 0.45);
+    --accent-primary: #a78bfa;
+    --accent-secondary: #7c3aed;
+    --accent-glow: rgba(124, 58, 237, 0.35);
     --text-primary: #f8fafc;
-    --text-secondary: #94a3b8;
-    --text-muted: #475569;
-    --border-color: rgba(255, 255, 255, 0.07);
+    --text-secondary: #cbd5e1;
+    --text-muted: #64748b;
+    --border-color: rgba(167, 139, 250, 0.18);
     --success: #10b981;
     --warning: #f59e0b;
     --danger: #ef4444;
     --info: #0ea5e9;
 }
 
-/* App Overrides with Premium Tech Grid */
+/* Global overrides */
 .stApp {
-    background-color: var(--bg-primary) !important;
-    background-image: 
-        radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.12) 0px, transparent 50%),
-        radial-gradient(at 100% 0%, rgba(217, 70, 239, 0.1) 0px, transparent 50%),
-        linear-gradient(rgba(255, 255, 255, 0.015) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255, 255, 255, 0.015) 1px, transparent 1px) !important;
-    background-size: 100% 100%, 100% 100%, 30px 30px, 30px 30px !important;
-    font-family: 'Plus Jakarta Sans', sans-serif !important;
+    background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 50%, #0d0520 100%) !important;
+    font-family: 'Inter', sans-serif !important;
 }
 
-/* Premium Header (Tech Dashboard Style) */
+/* Header Redesign */
 .omnichat-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background: rgba(12, 12, 16, 0.8) !important;
-    border: 1px solid var(--border-color) !important;
-    border-radius: 12px !important;
-    padding: 1rem 1.5rem !important;
-    margin-bottom: 1.5rem !important;
-    backdrop-filter: blur(20px) !important;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5) !important;
+    background: rgba(25, 15, 45, 0.55);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    padding: 1.25rem 2rem;
+    margin-bottom: 2rem;
+    backdrop-filter: blur(12px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
 }
 
 .header-left h1 {
     font-family: 'Outfit', sans-serif !important;
-    font-size: 1.6rem !important;
-    font-weight: 800 !important;
-    margin: 0 !important;
-    letter-spacing: -0.03em !important;
-    background: var(--accent-gradient);
+    font-size: 1.75rem;
+    font-weight: 800;
+    margin: 0;
+    background: linear-gradient(135deg, #c084fc, #a78bfa, #818cf8);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
 }
 
 .header-left p {
-    font-family: 'JetBrains Mono', monospace !important;
-    color: var(--accent-secondary) !important;
-    margin: 0.2rem 0 0 0 !important;
-    font-size: 0.7rem !important;
-    font-weight: 500 !important;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
+    color: var(--text-secondary);
+    margin: 0.15rem 0 0 0;
+    font-size: 0.8rem;
+    font-weight: 500;
 }
 
 .header-right {
     display: flex;
     align-items: center;
-    gap: 1rem;
+    gap: 1.25rem;
 }
 
 .header-metric {
     display: flex;
     flex-direction: column;
-    background: rgba(0, 0, 0, 0.4) !important;
-    border: 1px solid rgba(255, 255, 255, 0.05) !important;
-    padding: 0.3rem 0.75rem !important;
-    border-radius: 6px !important;
+    background: rgba(15, 10, 30, 0.6);
+    border: 1px solid rgba(167, 139, 250, 0.12);
+    padding: 0.3rem 0.75rem;
+    border-radius: 8px;
 }
 
 .metric-label {
-    font-family: 'JetBrains Mono', monospace !important;
-    font-size: 0.6rem !important;
-    color: var(--text-secondary) !important;
+    font-size: 0.65rem;
+    color: var(--text-muted);
+    font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.05em;
 }
 
 .metric-value {
-    font-size: 0.75rem !important;
-    color: var(--text-primary) !important;
-    font-weight: 600 !important;
+    font-size: 0.8rem;
+    color: var(--text-primary);
+    font-weight: 600;
 }
 
 .header-status {
-    font-size: 0.75rem !important;
-    color: var(--success) !important;
+    font-size: 0.8rem;
+    color: var(--success);
     display: flex;
     align-items: center;
-    gap: 0.35rem;
+    gap: 0.4rem;
     font-weight: 600;
 }
 
 .status-dot {
-    width: 6px;
-    height: 6px;
+    width: 8px;
+    height: 8px;
     background-color: var(--success);
     border-radius: 50%;
     display: inline-block;
@@ -152,117 +141,121 @@ PREMIUM_CSS = """
 .header-actions {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: 0.75rem;
 }
 
 .header-btn {
     cursor: pointer;
-    font-size: 1rem;
+    font-size: 1.1rem;
     padding: 0.3rem;
-    border-radius: 6px;
+    border-radius: 50%;
     transition: all 0.2s ease;
-    color: var(--text-secondary);
 }
 
 .header-btn:hover {
-    background: rgba(255, 255, 255, 0.05);
-    color: var(--text-primary);
-    transform: translateY(-1px);
+    background: rgba(167, 139, 250, 0.15);
+    transform: scale(1.1);
 }
 
 .header-avatar {
-    width: 28px;
-    height: 28px;
-    border-radius: 6px;
-    background: var(--accent-gradient);
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent-secondary), var(--accent-primary));
     color: white;
     font-weight: 700;
-    font-size: 0.8rem;
+    font-size: 0.85rem;
     display: flex;
     align-items: center;
     justify-content: center;
+    border: 1px solid rgba(255, 255, 255, 0.25);
     box-shadow: 0 2px 8px var(--accent-glow);
 }
 
-/* Sidebar Styling (High-End Dark Command Center) */
+/* Sidebar Redesign & Cards */
 section[data-testid="stSidebar"] {
-    background: #08080a !important;
+    background: linear-gradient(180deg, #160e2a 0%, #0d081b 100%) !important;
     border-right: 1px solid var(--border-color) !important;
     padding: 1.5rem 0.5rem !important;
 }
 
 section[data-testid="stSidebar"] h2 {
     font-family: 'Outfit', sans-serif !important;
-    font-weight: 800 !important;
+    font-weight: 700 !important;
     color: var(--text-primary) !important;
-    font-size: 1.2rem !important;
-    letter-spacing: -0.02em !important;
+    font-size: 1.25rem !important;
     margin-bottom: 1.5rem !important;
+    text-align: center;
 }
 
 section[data-testid="stSidebar"] div[data-testid="stExpander"] {
-    background: rgba(18, 18, 22, 0.6) !important;
-    border: 1px solid rgba(255, 255, 255, 0.05) !important;
-    border-radius: 8px !important;
-    margin-bottom: 0.75rem !important;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2) !important;
-    transition: all 0.2s ease !important;
+    background: rgba(30, 20, 60, 0.3) !important;
+    border: 1px solid rgba(167, 139, 250, 0.15) !important;
+    border-radius: 12px !important;
+    margin-bottom: 0.85rem !important;
+    backdrop-filter: blur(8px) !important;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15) !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
 
 section[data-testid="stSidebar"] div[data-testid="stExpander"]:hover {
-    border-color: rgba(255, 255, 255, 0.1) !important;
-    background: rgba(24, 24, 30, 0.8) !important;
-    transform: translateY(-1px) !important;
+    border-color: rgba(167, 139, 250, 0.35) !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 8px 25px rgba(124, 58, 237, 0.2) !important;
 }
 
+/* Sidebar labels and selections */
 section[data-testid="stSidebar"] label {
-    font-size: 0.75rem !important;
+    font-size: 0.8rem !important;
     font-weight: 600 !important;
     color: var(--text-secondary) !important;
+    margin-bottom: 4px !important;
 }
 
 /* Expanders globally */
 .streamlit-expanderHeader {
     background: transparent !important;
     border: none !important;
-    font-size: 0.85rem !important;
-    font-weight: 700 !important;
+    font-size: 0.9rem !important;
+    font-weight: 600 !important;
     color: var(--text-primary) !important;
 }
 
-/* Premium Buttons UI */
+/* Button UI system */
 .stButton > button, .stDownloadButton > button {
     display: inline-flex !important;
     align-items: center !important;
     justify-content: center !important;
     width: 100% !important;
-    height: 38px !important;
-    border-radius: 6px !important;
-    font-size: 0.8rem !important;
+    height: 40px !important;
+    border-radius: 8px !important;
+    font-size: 0.85rem !important;
     font-weight: 600 !important;
-    margin-bottom: 0.4rem !important;
-    transition: all 0.2s ease !important;
-    box-shadow: none !important;
+    margin-bottom: 0.5rem !important;
+    transition: all 0.25s ease !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
+    cursor: pointer !important;
 }
 
-/* Primary Button (Glossy Accent Gradient) */
+/* Button style categorization */
+/* 1. Primary buttons */
 .stButton > button, 
 button[key*="btn_proceed_gen"],
 button[key*="btn_rebuild"] {
-    background: var(--accent-gradient) !important;
+    background: linear-gradient(135deg, var(--accent-secondary), var(--accent-primary)) !important;
     color: white !important;
     border: none !important;
-    box-shadow: 0 4px 12px var(--accent-glow) !important;
+    box-shadow: 0 4px 14px var(--accent-glow) !important;
 }
 
 .stButton > button:hover, 
 button[key*="btn_proceed_gen"]:hover,
 button[key*="btn_rebuild"]:hover {
-    transform: translateY(-1px) !important;
-    box-shadow: 0 6px 16px rgba(99, 102, 241, 0.4) !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 6px 20px rgba(124, 58, 237, 0.55) !important;
 }
 
-/* Secondary Button (Minimalist Flat Outline) */
+/* 2. Secondary buttons (glassmorphism style) */
 button[key*="btn_new_session"], 
 button[key*="btn_save_session"], 
 button[key*="btn_rename_session"], 
@@ -274,9 +267,10 @@ button[key*="dl_png_"],
 button[key*="dl_jpg_"],
 button[key*="upscale_"],
 button[key*="ref_"] {
-    background: rgba(255, 255, 255, 0.03) !important;
+    background: rgba(30, 20, 60, 0.5) !important;
     border: 1px solid var(--border-color) !important;
     color: var(--text-primary) !important;
+    box-shadow: none !important;
 }
 
 button[key*="btn_new_session"]:hover,
@@ -290,20 +284,21 @@ button[key*="dl_png_"]:hover,
 button[key*="dl_jpg_"]:hover,
 button[key*="upscale_"]:hover,
 button[key*="ref_"]:hover {
-    background: rgba(255, 255, 255, 0.07) !important;
-    border-color: rgba(255, 255, 255, 0.2) !important;
+    background: rgba(167, 139, 250, 0.15) !important;
+    border-color: var(--accent-primary) !important;
     transform: translateY(-1px) !important;
 }
 
-/* Danger Button */
+/* 3. Danger buttons */
 button[key*="clear"],
 button[key*="btn_clear"],
 button[key*="delete"],
 button[key*="btn_delete_session"],
 button[key*="del_"] {
-    background: rgba(239, 68, 68, 0.08) !important;
-    border: 1px solid rgba(239, 68, 68, 0.25) !important;
+    background: rgba(239, 68, 68, 0.15) !important;
+    border: 1px solid rgba(239, 68, 68, 0.35) !important;
     color: #fca5a5 !important;
+    box-shadow: none !important;
 }
 
 button[key*="clear"]:hover,
@@ -311,61 +306,58 @@ button[key*="btn_clear"]:hover,
 button[key*="delete"]:hover,
 button[key*="btn_delete_session"]:hover,
 button[key*="del_"]:hover {
-    background: rgba(239, 68, 68, 0.18) !important;
+    background: rgba(239, 68, 68, 0.3) !important;
     border-color: var(--danger) !important;
+    transform: translateY(-1px) !important;
 }
 
-/* Success / Actions */
+/* 4. Success / Actions */
 button[key*="index"],
 button[key*="btn_index"],
 button[key*="btn_build_med"] {
-    background: rgba(16, 185, 129, 0.08) !important;
-    border: 1px solid rgba(16, 185, 129, 0.25) !important;
+    background: rgba(16, 185, 129, 0.15) !important;
+    border: 1px solid rgba(16, 185, 129, 0.35) !important;
     color: #a7f3d0 !important;
+    box-shadow: none !important;
 }
 
 button[key*="index"]:hover,
 button[key*="btn_index"]:hover,
 button[key*="btn_build_med"]:hover {
-    background: rgba(16, 185, 129, 0.18) !important;
+    background: rgba(16, 185, 129, 0.3) !important;
     border-color: var(--success) !important;
+    transform: translateY(-1px) !important;
 }
 
-/* Inputs and Selectors (Minimal dark slate focus) */
+/* Input Fields & Text Areas */
 .stSelectbox > div > div, 
 .stTextInput > div > div, 
 .stTextArea textarea {
-    background: #0e0e12 !important;
+    background: rgba(20, 10, 40, 0.6) !important;
     border: 1px solid var(--border-color) !important;
-    border-radius: 6px !important;
+    border-radius: 8px !important;
     color: var(--text-primary) !important;
 }
 
-.stSelectbox > div > div:focus-within, 
-.stTextInput > div > div:focus-within, 
-.stTextArea textarea:focus {
-    border-color: var(--accent-primary) !important;
-    box-shadow: 0 0 10px rgba(99, 102, 241, 0.2) !important;
-}
-
-/* Chat Input styling (Minimalist Capsule Dock) */
+/* Chat Input styling */
 .stChatInput {
     background: transparent !important;
-    padding-bottom: 25px !important;
+    padding-bottom: 20px !important;
 }
 
 .stChatInput > div {
-    background: #0f0f13 !important;
-    border: 1px solid rgba(255, 255, 255, 0.08) !important;
-    border-radius: 12px !important;
-    box-shadow: 0 12px 48px rgba(0, 0, 0, 0.5) !important;
-    padding: 0.3rem 1rem !important;
-    transition: all 0.2s ease !important;
+    background: rgba(25, 15, 45, 0.8) !important;
+    border: 1px solid rgba(167, 139, 250, 0.25) !important;
+    border-radius: 24px !important;
+    box-shadow: 0 10px 30px rgba(124, 58, 237, 0.15) !important;
+    backdrop-filter: blur(12px) !important;
+    padding: 0.25rem 1rem !important;
+    transition: all 0.3s ease !important;
 }
 
 .stChatInput > div:focus-within {
-    border-color: rgba(99, 102, 241, 0.5) !important;
-    box-shadow: 0 12px 48px rgba(0, 0, 0, 0.5), 0 0 15px rgba(99, 102, 241, 0.15) !important;
+    border-color: var(--accent-primary) !important;
+    box-shadow: 0 10px 30px rgba(124, 58, 237, 0.3) !important;
 }
 
 .stChatInput textarea {
@@ -373,43 +365,35 @@ button[key*="btn_build_med"]:hover {
     font-size: 0.95rem !important;
 }
 
-/* Chat Message Bubbles (Sophisticated Tech Panels) */
+/* Chat Message Bubbles */
 .stChatMessage {
-    background: rgba(18, 18, 22, 0.55) !important;
+    background: var(--bg-card) !important;
     border: 1px solid var(--border-color) !important;
-    border-left: 3px solid var(--accent-primary) !important;
-    border-radius: 8px !important;
+    border-radius: 16px !important;
+    backdrop-filter: blur(10px) !important;
     padding: 1.25rem !important;
     margin-bottom: 0.85rem !important;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15) !important;
-    transition: all 0.2s ease !important;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1) !important;
+    animation: fadeInUp 0.4s ease-out;
 }
 
-.stChatMessage:hover {
-    border-color: rgba(255, 255, 255, 0.15) !important;
-    border-left-color: var(--accent-secondary) !important;
-    background: rgba(24, 24, 30, 0.65) !important;
-    transform: translateX(2px);
-}
-
-/* Headings */
+/* Headings typography */
 h1, h2, h3, h4 {
     font-family: 'Outfit', sans-serif !important;
     color: var(--text-primary) !important;
 }
 
-/* Badges */
+/* Badge Mode */
 .mode-badge {
     display: inline-block;
-    background: var(--accent-gradient);
+    background: linear-gradient(135deg, var(--accent-secondary), var(--accent-primary));
     color: white;
-    padding: 3px 12px;
-    border-radius: 4px;
-    font-size: 0.75rem;
-    font-family: 'JetBrains Mono', monospace;
+    padding: 4px 14px;
+    border-radius: 20px;
+    font-size: 0.8rem;
     font-weight: 600;
     margin-bottom: 0.75rem;
-    box-shadow: 0 2px 8px var(--accent-glow);
+    box-shadow: 0 2px 10px var(--accent-glow);
 }
 
 /* Keyframe animations */
@@ -419,28 +403,33 @@ h1, h2, h3, h4 {
     100% { opacity: 0.6; }
 }
 
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
 .status-dot {
     animation: pulse 2s infinite ease-in-out;
 }
 
 /* Custom file upload styling */
 .stFileUploader > div {
-    background: rgba(255, 255, 255, 0.02) !important;
+    background: rgba(30, 20, 60, 0.2) !important;
     border: 1px dashed var(--border-color) !important;
-    border-radius: 6px !important;
+    border-radius: 8px !important;
 }
 
-/* Scrollbars */
+/* Scrollbar styling */
 ::-webkit-scrollbar {
-    width: 5px;
-    height: 5px;
+    width: 6px;
+    height: 6px;
 }
 ::-webkit-scrollbar-track {
     background: var(--bg-primary);
 }
 ::-webkit-scrollbar-thumb {
-    background: var(--text-muted);
-    border-radius: 3px;
+    background: var(--accent-secondary);
+    border-radius: 4px;
 }
 </style>
 """
@@ -1408,6 +1397,7 @@ st.markdown(header_html, unsafe_allow_html=True)
 # ---------------------------------------------------------------------------
 with st.sidebar:
     st.markdown("## 🎛️ Control Panel")
+    render_auth_panel()
 
     # Mode selector
     chat_mode = st.selectbox(
@@ -1777,9 +1767,6 @@ with st.sidebar:
             )
         else:
             st.info("No messages to export.")
-    
-    st.divider()
-    render_auth_panel()
 
 # ---------------------------------------------------------------------------
 # Main Chat Area — Mode-specific header
@@ -2206,7 +2193,7 @@ if user_input:
         }
     )
     st.session_state.gemini_history.append(
-        {"role": "user", "parts": [{"text": english_input}]}
+        {"role": "user", "parts": [{"text": query_text}]}
     )
 
     # ---- ROUTE BASED ON MODE ----
