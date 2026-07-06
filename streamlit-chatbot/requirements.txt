@@ -22,7 +22,7 @@ langdetect
 pandas
 numpy
 plotly
-opencv-python
+opencv-python-headless
 PyMuPDF
 
 
