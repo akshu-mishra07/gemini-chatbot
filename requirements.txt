@@ -1,0 +1,26 @@
+# ── Core UI ──────────────────────────────────────────────────────────────────
+streamlit>=1.35.0
+google-genai
+python-dotenv
+pypdf
+langchain
+langchain-community
+langchain-huggingface
+langchain-text-splitters
+faiss-cpu
+sentence-transformers
+torchvision
+python-docx
+pillow
+spacy
+pytesseract
+pdf2image
+requests
+transformers
+deep-translator
+langdetect
+pandas
+numpy
+plotly
+opencv-python
+PyMuPDF
