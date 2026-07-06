@@ -17,6 +17,20 @@ current_dir = os.path.dirname(os.path.abspath(__file__))
 if current_dir not in sys.path:
     sys.path.insert(0, current_dir)
 
+# Fallback 1: add parent directory's "streamlit-chatbot" subfolder
+repo_root = os.path.abspath(os.path.join(current_dir, ".."))
+subfolder = os.path.join(repo_root, "streamlit-chatbot")
+if os.path.exists(subfolder) and subfolder not in sys.path:
+    sys.path.insert(0, subfolder)
+
+# Fallback 2: add current working directory and its subfolder
+cwd = os.getcwd()
+if cwd not in sys.path:
+    sys.path.insert(0, cwd)
+cwd_sub = os.path.join(cwd, "streamlit-chatbot")
+if os.path.exists(cwd_sub) and cwd_sub not in sys.path:
+    sys.path.insert(0, cwd_sub)
+
 import streamlit as st
 import datetime
 import re
